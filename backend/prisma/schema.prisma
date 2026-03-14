@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  projects     Project[]
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  status      ProjectStatus
+
+  ownerId     String
+  owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  planningTasks PlanningTask[]
+  roadmapTasks  RoadmapTask[]
+  milestones    Milestone[]
+
+  @@index([ownerId])
+  @@unique([ownerId, title])
+}
+
+model PlanningTask {
+  id          String   @id @default(uuid())
+  projectId   String
+  title       String
+  description String?
+  source      TaskSource
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model RoadmapTask {
+  id          String   @id @default(uuid())
+  projectId   String
+  title       String
+  description String?
+  status      TaskStatus
+  dueDate     DateTime?
+  orderIndex  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+
+  dependencies TaskDependency[] @relation("TaskDependencies")
+  dependedOnBy TaskDependency[] @relation("DependentTasks")
+}
+
+model TaskDependency {
+  id              String @id @default(uuid())
+  taskId          String
+  dependsOnTaskId String
+
+  task          RoadmapTask @relation("TaskDependencies", fields: [taskId], references: [id])
+  dependsOnTask RoadmapTask @relation("DependentTasks", fields: [dependsOnTaskId], references: [id])
+}
+
+model Milestone {
+  id         String   @id @default(uuid())
+  projectId  String
+  title      String
+  orderIndex Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+enum TaskSource {
+  USER
+  AI
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+}
