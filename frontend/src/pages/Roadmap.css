@@ -1,0 +1,109 @@
+.roadmap-page {
+  padding: 3rem 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.roadmap-header {
+  margin-bottom: 4rem;
+  text-align: center;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 2rem;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--accent-color);
+}
+
+.roadmap-header .project-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.roadmap-header .project-desc {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.roadmap-timeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.task-node {
+  display: flex;
+  gap: 1.5rem;
+  padding: 2rem;
+  width: 100%;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.task-node:hover {
+  transform: translateX(5px);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.task-node.completed {
+  opacity: 0.7;
+}
+
+.task-node.completed .task-title {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.task-status-btn {
+  cursor: pointer;
+  margin-top: 0.2rem;
+  transition: transform 0.2s ease;
+}
+
+.task-status-btn:hover {
+  transform: scale(1.1);
+}
+
+.task-content {
+  flex: 1;
+}
+
+.task-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.task-desc {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.task-dependencies {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--border-radius-sm);
+  display: inline-block;
+}
+
+.timeline-connector {
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.5;
+}

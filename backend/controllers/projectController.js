@@ -1,4 +1,5 @@
 import prisma from "../db/prisma.js";
+import { ProjectStatus } from "../generated/prisma/client/index.js";
 
 const projectGet = async (req, res) => {
   const { id } = req.params;
@@ -62,10 +63,14 @@ const projectUserGet = async (req, res) => {
       },
     });
 
-    const formattedProjects = projects.map(({ owner, ...rest }) => ({
-      ...rest,
-      username: owner.username,
-    }));
+    let formattedProjects = [];
+    if(projects)
+    {
+      formattedProjects = projects.map(({ owner, ...rest }) => ({
+        ...rest,
+        username: owner.username,
+      }));
+    }
 
     res.status(200).json({
       success: true,
@@ -97,6 +102,7 @@ const projectCreate = async (req, res) => {
         title: title,
         description: description,
         ownerId: ownerId,
+        status: ProjectStatus.PLANNING,
       },
       include: {
         owner: {
@@ -153,7 +159,7 @@ const projectUpdate = async (req, res) => {
       },
     });
 
-    const { owner, ...project } = projectRecord;
+    const { owner, ...project } = updatedProject;
     project.username = owner.username;
 
     res.status(200).json({

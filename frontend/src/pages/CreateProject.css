@@ -1,0 +1,50 @@
+.create-project-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 6rem);
+  padding: 2rem 1rem;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 650px;
+  padding: 3rem;
+}
+
+.create-project-page .page-title {
+  font-size: 2.25rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.create-project-page .page-subtitle {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.textarea-field {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
+}
+
+.form-submit {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  font-size: 1.1rem;
+}
+
+.spin-anim {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}

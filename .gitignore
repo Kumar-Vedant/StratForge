@@ -1,2 +1,3 @@
 backend/node_modules
 .env
+ai_service/__pycache__

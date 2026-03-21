@@ -1,4 +1,4 @@
-import { prisma } from "../db/prisma.js";
+import prisma from "../db/prisma.js";
 
 const roadmapTaskByProjectGet = async (req, res) => {
   const { projectId } = req.params;

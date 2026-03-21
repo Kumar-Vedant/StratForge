@@ -1,10 +1,5 @@
 import bcrypt from "bcryptjs";
-
-// import pkg from "@prisma/client";
-// import { error } from "neo4j-driver";
-// const { PrismaClient, Role } = pkg;
-
-// const prisma = new PrismaClient();
+import prisma from "../db/prisma.js";
 
 const register = async (req, res) => {};
 
