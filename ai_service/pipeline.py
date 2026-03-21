@@ -6,7 +6,8 @@ def generate_planning(project_description):
 
     result = generate_tasks_and_queries(project_description)
 
-    tasks_output = []
+    detailed_tasks = []
+    simple_tasks = []
 
     for task in result["tasks"]:
 
@@ -21,15 +22,23 @@ def generate_planning(project_description):
             search_results
         )
 
-        tasks_output.append({
+        detailed_task = {
             "title": task["title"],
             "description": task["description"],
             "queries": task["queries"],
             "solutions": solutions["solutions"]
+        }
+
+        detailed_tasks.append(detailed_task)
+
+        simple_tasks.append({
+            "title": task["title"],
+            "description": task["description"]
         })
 
     return {
-        "tasks": tasks_output
+        "tasks": simple_tasks,
+        "detailed": detailed_tasks
     }
 
-print(generate_planning("roadmap generation AI agent"))
+# print(generate_planning("roadmap generation AI agent"))

@@ -12,24 +12,39 @@ model = ChatGoogleGenerativeAI(
 
 # task and query generation prompt
 task_template = """
-Break the following project into 2-4 planning tasks.
+You are an expert planner and researcher.
 
-For EACH task generate 3 technical web search queries to find existing implementations.
+Your job is to break a project or goal into clear, meaningful planning tasks and generate search queries to find existing approaches, examples, or solutions.
 
-Return ONLY valid JSON.
+INSTRUCTIONS:
+- Break the project into 2-4 HIGH-LEVEL, actionable tasks
+- Each task should represent a meaningful step toward completing the project
+- Avoid vague tasks like "do research" or "work on project"
+- Tasks should be practical and understandable in any domain
 
-Format:
+FOR EACH TASK:
+- Provide a concise title (max 8 words)
+- Provide a clear description (1-2 sentences)
+- Generate EXACTLY 3 high-quality search queries
+- Queries should be specific and designed to find real examples, guides, or similar existing solutions
+
+OUTPUT RULES:
+- Return ONLY valid JSON
+- Do NOT include explanations, markdown, or extra text
+- Ensure proper JSON formatting
+
+FORMAT:
 {{
- "tasks":[
-  {{
-   "title":"",
-   "description":"",
-   "queries":[]
-  }}
- ]
+  "tasks": [
+    {{
+      "title": "",
+      "description": "",
+      "queries": ["", "", ""]
+    }}
+  ]
 }}
 
-Project:
+PROJECT:
 {project}
 """
 
@@ -51,25 +66,45 @@ def generate_tasks_and_queries(project_description):
 
 # solution extraction prompt
 solution_template = """
-Based on the following web search results, extract useful implementation solutions.
+You are an expert researcher.
 
-Return ONLY JSON.
+Your job is to analyze search results and extract useful, real-world solutions or approaches relevant to a given task.
 
-Format:
+INSTRUCTIONS:
+- Review the search results carefully
+- Identify practical solutions, methods, tools, case studies, or approaches
+- Focus on useful and actionable insights
+- Ignore irrelevant or low-quality results
+
+FOR EACH SOLUTION:
+- "name": the name of the solution, method, tool, or approach
+- "description": a short explanation of what it is and why it is useful (1-2 sentences)
+- "source": a URL if available, otherwise best available reference
+
+CONSTRAINTS:
+- Return 2-4 high-quality solutions (fewer if limited relevant data)
+- Do NOT invent or hallucinate solutions — use only the provided results
+- Avoid duplicates or very similar entries
+
+OUTPUT RULES:
+- Return ONLY valid JSON
+- Do NOT include explanations, markdown, or extra text
+
+FORMAT:
 {{
- "solutions":[
-   {{
-    "name":"",
-    "description":"",
-    "source":""
-   }}
- ]
+  "solutions": [
+    {{
+      "name": "",
+      "description": "",
+      "source": ""
+    }}
+  ]
 }}
 
-Task:
+TASK:
 {task}
 
-Search Results:
+SEARCH RESULTS:
 {results}
 """
 
