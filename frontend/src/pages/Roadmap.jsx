@@ -16,12 +16,14 @@ const Roadmap = () => {
         setLoading(true);
         // Fetch project metadata
         const projRes = await api.get(`/project/${projectId}`);
-        setProject(projRes.data);
+        setProject(projRes.data?.data || projRes.data);
         
         // Fetch tasks
         const tasksRes = await api.get(`/roadmaptask/${projectId}`);
-        if (Array.isArray(tasksRes.data)) {
+        if (Array.isArray(tasksRes.data?.data)) {
            // Sort tasks by theoretical order/dependency or just keep original order
+           setTasks(tasksRes.data.data);
+        } else if (Array.isArray(tasksRes.data)) {
            setTasks(tasksRes.data);
         } else {
            setTasks([]);
@@ -38,8 +40,8 @@ const Roadmap = () => {
 
   const toggleTaskCompletion = async (taskId, currentStatus) => {
     try {
-      // Toggle status between 'PENDING' and 'COMPLETED' (or similar logic)
-      const newStatus = currentStatus === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
+      // Toggle status between 'TODO' and 'DONE'
+      const newStatus = currentStatus === 'DONE' ? 'TODO' : 'DONE';
       await api.put(`/roadmaptask/${taskId}/update`, { status: newStatus });
       setTasks(tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
     } catch (err) {
@@ -51,7 +53,7 @@ const Roadmap = () => {
     <div className="roadmap-page container animate-fade-in">
       <div className="roadmap-header">
         <Link to="/projects" className="back-link"><ArrowLeft size={18} /> Back to Projects</Link>
-        <h1 className="project-title">{project ? project.name : 'Loading Project...'}</h1>
+        <h1 className="project-title">{project ? project.title : 'Loading Project...'}</h1>
         <p className="project-desc">{project ? project.description : ''}</p>
       </div>
 
@@ -66,7 +68,7 @@ const Roadmap = () => {
       ) : (
         <div className="roadmap-timeline">
           {tasks.map((task, index) => {
-            const isCompleted = task.status === 'COMPLETED';
+            const isCompleted = task.status === 'DONE';
             return (
               <React.Fragment key={task.id}>
                 <div className={`task-node glass-panel ${isCompleted ? 'completed' : ''}`}>

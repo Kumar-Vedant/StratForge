@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
-import { api, aiApi } from '../api';
+import { api } from '../api';
 import './CreateProject.css';
 
 const CreateProject = () => {
@@ -30,17 +30,28 @@ const CreateProject = () => {
       
       const projectId = projRes.data.data?.id || projRes.data.project?.id;
 
-      // 2. Fire and forget AI generation if needed, or await it
+      // 2. Await AI Generation
       if (projectId) {
          setAiGenerating(true);
          try {
-           const aiRes = await aiApi.post('/generate-planning', {
+           // Call the backend proxy instead of calling FastAPI directly
+           const aiRes = await api.post('/ai/generate-planning', {
              projectDescription: formData.description
            });
            
-           // Based on the planning result, we would ideally parse and create roadmap tasks here.
-           // For now, we simulate success and move to the project page.
-           console.log("AI Generation complete:", aiRes.data);
+           // Based on pipeline.py format: aiRes.data.data.tasks (array of {title, description})
+           const generatedTasks = aiRes.data.data?.tasks || [];
+           
+           // Loop and push each task to db sequentially or parallel
+           await Promise.all(generatedTasks.map(task => {
+              return api.post('/planningtask/create', {
+                projectId: projectId,
+                title: task.title || 'Untitled Task',
+                description: task.description || '',
+                source: 'AI'
+              });
+           }));
+           
          } catch (aiErr) {
            console.error("AI Generation non-fatal error", aiErr);
          }
@@ -48,7 +59,9 @@ const CreateProject = () => {
          setAiGenerating(false);
       }
 
-      navigate('/projects');
+      // 3. Navigate to Planning Page
+      navigate(`/projects/${projectId}/plan`);
+
     } catch (err) {
       console.error("Project creation failed", err);
       // Fallback
@@ -92,11 +105,11 @@ const CreateProject = () => {
 
           <button type="submit" className="btn-primary form-submit" disabled={loading || aiGenerating}>
             {aiGenerating ? (
-              <><Sparkles size={18} className="spin-anim" /> Generating AI Roadmap...</>
+              <><Sparkles size={18} className="spin-anim" /> Designing Plan...</>
             ) : loading ? (
-              'Saving...'
+              'Saving Project...'
             ) : (
-               <><Sparkles size={18} /> Create & Generate Plan</>
+               <><Sparkles size={18} /> Create & Plan Project</>
             )}
           </button>
         </form>

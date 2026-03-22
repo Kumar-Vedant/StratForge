@@ -1,4 +1,5 @@
 import prisma from "../db/prisma.js";
+import { TaskStatus } from "../generated/prisma/client/index.js";
 
 const roadmapTaskByProjectGet = async (req, res) => {
   const { projectId } = req.params;
@@ -39,13 +40,20 @@ const roadmapTaskCreate = async (req, res) => {
     });
   }
 
+  if (!Object.values(TaskStatus).includes(status)) {
+    return res.status(400).json({
+      success: false,
+      error: `Invalid status. Must be one of: ${Object.values(TaskStatus).join(", ")}`,
+    });
+  }
+
   try {
     const task = await prisma.roadmapTask.create({
       data: {
         projectId,
         title,
         description,
-        status,
+        status: TaskStatus[status],
         dueDate,
         orderIndex,
       },
@@ -80,9 +88,18 @@ const roadmapTaskUpdate = async (req, res) => {
 
   if (title) updateData.title = title;
   if (description) updateData.description = description;
-  if (status) updateData.status = status;
   if (dueDate) updateData.dueDate = dueDate;
   if (orderIndex !== undefined) updateData.orderIndex = orderIndex;
+
+  if (status) {
+    if (!Object.values(TaskStatus).includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid status. Must be one of: ${Object.values(TaskStatus).join(", ")}`,
+      });
+    }
+    updateData.status = TaskStatus[status];
+  }
 
   try {
     const updatedTask = await prisma.roadmapTask.update({
