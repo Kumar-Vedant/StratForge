@@ -51,7 +51,7 @@ model PlanningTask {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model RoadmapTask {
@@ -65,7 +65,7 @@ model RoadmapTask {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   dependencies TaskDependency[] @relation("TaskDependencies")
   dependedOnBy TaskDependency[] @relation("DependentTasks")

@@ -1,12 +1,17 @@
 .roadmap-page {
   padding: 3rem 1rem;
   max-width: 900px;
+  width: 100%;
   margin: 0 auto;
 }
 
 .roadmap-header {
   margin-bottom: 4rem;
-  text-align: center;
+}
+
+.roadmap-back-row {
+  width: 100%;
+  margin-bottom: 1.5rem;
 }
 
 .back-link {
@@ -17,6 +22,7 @@
   font-weight: 500;
   margin-bottom: 2rem;
   transition: color 0.2s ease;
+  align-self: flex-start;
 }
 
 .back-link:hover {

@@ -19,6 +19,13 @@
   --glass-bg: rgba(20, 20, 22, 0.7);
   --glass-border: rgba(255, 255, 255, 0.05);
 
+  --navbar-bg: rgba(10, 10, 11, 0.8);
+  --btn-sec-bg: rgba(255, 255, 255, 0.05);
+  --btn-sec-hover: rgba(255, 255, 255, 0.1);
+
+  --hover-glass: rgba(30, 30, 35, 0.9);
+  --hover-glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
   /* Spacing */
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
@@ -102,7 +109,7 @@ button {
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--btn-sec-bg);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   padding: 0.75rem 1.5rem;
@@ -112,14 +119,14 @@ button {
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--btn-sec-hover);
 }
 
 .input-field {
   width: 100%;
   padding: 0.8rem 1rem;
   border-radius: var(--border-radius-sm);
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--input-bg);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   font-family: inherit;
@@ -147,4 +154,30 @@ button {
 
 .animate-fade-in {
   animation: fadeIn 0.4s ease forwards;
+}
+
+body.light-theme {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  
+  --accent-color: #4f46e5; 
+  --accent-hover: #4338ca;
+  
+  --gradient-bg: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08), transparent 400px),
+                 radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.05), transparent 400px);
+
+  --border-color: rgba(0, 0, 0, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(0, 0, 0, 0.08);
+
+  --navbar-bg: rgba(255, 255, 255, 0.95);
+  --input-bg: rgba(255, 255, 255, 0.8);
+  --btn-sec-bg: rgba(0, 0, 0, 0.04);
+  --btn-sec-hover: rgba(0, 0, 0, 0.08);
+
+  --hover-glass: rgba(226, 232, 240, 0.8); /* slate-200 equivalent */
+  --hover-glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }

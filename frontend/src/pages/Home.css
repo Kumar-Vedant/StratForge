@@ -50,7 +50,7 @@
 
 .feature-card:hover {
   transform: translateY(-5px);
-  background: rgba(30, 30, 35, 0.8);
+  background: var(--hover-glass);
 }
 
 .feature-icon {

@@ -82,7 +82,8 @@ FOR EACH SOLUTION:
 - "source": a URL if available, otherwise best available reference
 
 CONSTRAINTS:
-- Return 2-4 high-quality solutions (fewer if limited relevant data)
+- Return 6-10 high-quality tasks
+- Make sure each task has a separate concern
 - Do NOT invent or hallucinate solutions — use only the provided results
 - Avoid duplicates or very similar entries
 

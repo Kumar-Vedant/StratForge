@@ -6,6 +6,7 @@ import Projects from './pages/Projects';
 import CreateProject from './pages/CreateProject';
 import Planning from './pages/Planning';
 import Roadmap from './pages/Roadmap';
+import Profile from './pages/Profile';
 import './App.css';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/projects/create" element={<CreateProject />} />
           <Route path="/projects/:projectId/plan" element={<Planning />} />
           <Route path="/projects/:projectId/roadmap" element={<Roadmap />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </main>
     </div>

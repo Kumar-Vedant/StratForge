@@ -39,11 +39,22 @@ const CreateProject = () => {
              projectDescription: formData.description
            });
            
-           // Based on pipeline.py format: aiRes.data.data.tasks (array of {title, description})
-           const generatedTasks = aiRes.data.data?.tasks || [];
+           // Flatten all solutions from detailed tasks into individual planning tasks
+           const detailed = aiRes.data.data?.detailed || [];
+           const generatedTasks = detailed.flatMap(task =>
+             (task.solutions || []).map(sol => ({
+               title: sol.name || task.title,
+               description: sol.description || task.description
+             }))
+           );
+           
+           // Fallback to simple tasks if no solutions found
+           const tasksToSave = generatedTasks.length > 0
+             ? generatedTasks
+             : (aiRes.data.data?.tasks || []);
            
            // Loop and push each task to db sequentially or parallel
-           await Promise.all(generatedTasks.map(task => {
+           await Promise.all(tasksToSave.map(task => {
               return api.post('/planningtask/create', {
                 projectId: projectId,
                 title: task.title || 'Untitled Task',

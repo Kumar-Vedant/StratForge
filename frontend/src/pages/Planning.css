@@ -6,11 +6,17 @@
 
 .planning-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  flex-direction: column;
   margin-bottom: 3rem;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 1.5rem;
+  gap: 1.25rem;
+}
+
+.planning-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
 }
 
 .back-link {

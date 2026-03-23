@@ -18,7 +18,7 @@
   left: 0;
   right: 0;
   height: 4.5rem;
-  background: rgba(10, 10, 11, 0.8);
+  background: var(--navbar-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
@@ -53,14 +53,54 @@
   color: var(--text-secondary);
   font-weight: 500;
   transition: color 0.2s ease;
+  position: relative;
 }
 
 .nav-link:hover, .nav-link.active {
   color: var(--text-primary);
 }
 
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background-color: var(--accent-color);
+  transition: width 0.2s ease;
+  border-radius: 2px;
+}
+
+.nav-link:hover::after, .nav-link.active::after {
+  width: 100%;
+  left: 0;
+}
+
 .nav-actions {
   display: flex;
   gap: 1rem;
   align-items: center;
+}
+
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+}
+
+.profile-avatar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(99, 102, 241, 0.4);
+  color: white;
 }

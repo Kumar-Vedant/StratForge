@@ -140,18 +140,20 @@ const Planning = () => {
   return (
     <div className="planning-page container animate-fade-in">
       <div className="planning-header">
-        <div>
-           <Link to="/projects" className="back-link">Back to Projects</Link>
-           <h1 className="page-title gradient-text">Review AI Draft Plan</h1>
-           <p className="page-subtitle">Refine the tasks that our AI created before converting them into an active roadmap.</p>
+        <Link to="/projects" className="back-link">← Back to Projects</Link>
+        <div className="planning-header-row">
+          <div>
+            <h1 className="page-title gradient-text">Review AI Draft Plan</h1>
+            <p className="page-subtitle">Refine the tasks that our AI created before converting them into an active roadmap.</p>
+          </div>
+          <button 
+            className="btn-primary create-roadmap-btn" 
+            onClick={handleCreateRoadmap}
+            disabled={savingReorder || tasks.length === 0}
+          >
+            {savingReorder ? "Activating..." : <><CheckCircle2 size={20} /> Convert to Roadmap <ArrowRight size={20}/></>}
+          </button>
         </div>
-        <button 
-           className="btn-primary create-roadmap-btn" 
-           onClick={handleCreateRoadmap}
-           disabled={savingReorder || tasks.length === 0}
-        >
-          {savingReorder ? "Activating..." : <><CheckCircle2 size={20} /> Convert to Roadmap <ArrowRight size={20}/></>}
-        </button>
       </div>
 
       <div className="tasks-container">

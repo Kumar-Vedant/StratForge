@@ -1,10 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Network } from 'lucide-react';
+import { Network, Sun, Moon } from 'lucide-react';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const userId = localStorage.getItem('userId');
+  const username = localStorage.getItem('username');
+  const avatarLetter = username ? username.charAt(0).toUpperCase() : '?';
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.body.classList.add('light-theme');
+    } else {
+      document.body.classList.remove('light-theme');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('userId');
@@ -24,8 +40,16 @@ const Navbar = () => {
           {userId && <Link to="/projects" className="nav-link">My Projects</Link>}
         </div>
         <div className="nav-actions">
+          <button className="icon-btn theme-toggle" onClick={toggleTheme} style={{ padding: '0.5rem', borderRadius: '50%', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', display: 'flex', color: 'var(--text-primary)' }}>
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
           {userId ? (
-            <button className="btn-secondary" onClick={handleLogout}>Log Out</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <button className="btn-secondary" onClick={handleLogout}>Log Out</button>
+              <Link to="/profile" className="profile-avatar" title="My Profile">
+                {avatarLetter}
+              </Link>
+            </div>
           ) : (
             <Link to="/login" className="btn-primary">Sign In</Link>
           )}
