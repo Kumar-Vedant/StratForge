@@ -16,6 +16,7 @@ import projectRouter from "./routes/projectRouter.js";
 import roadmaptaskRouter from "./routes/roadmaptaskRouter.js";
 import planningtaskRouter from "./routes/planningtaskRouter.js";
 import aiRouter from "./routes/aiRouter.js";
+import calendarRouter from "./routes/calendarRouter.js";
 // import indexRouter from "./routes/indexRouter.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -33,6 +34,7 @@ app.use("/project", projectRouter);
 app.use("/roadmaptask", roadmaptaskRouter);
 app.use("/planningtask", planningtaskRouter);
 app.use("/ai", aiRouter);
+app.use("/calendar", calendarRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Express app listening on port ${PORT}!`));

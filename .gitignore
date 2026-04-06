@@ -1,3 +1,4 @@
 backend/node_modules
+backend/credentials.json
 .env
 ai_service/__pycache__

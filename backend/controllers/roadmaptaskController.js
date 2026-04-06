@@ -31,7 +31,7 @@ const roadmapTaskByProjectGet = async (req, res) => {
 };
 
 const roadmapTaskCreate = async (req, res) => {
-  const { projectId, title, description, status, dueDate, orderIndex } = req.body;
+  const { projectId, title, description, status, dueDate, durationDays, orderIndex } = req.body;
 
   if (!projectId || !title || !status || orderIndex === undefined) {
     return res.status(400).json({
@@ -55,6 +55,7 @@ const roadmapTaskCreate = async (req, res) => {
         description,
         status: TaskStatus[status],
         dueDate,
+        durationDays: durationDays ?? 1,
         orderIndex,
       },
     });
@@ -75,9 +76,9 @@ const roadmapTaskCreate = async (req, res) => {
 
 const roadmapTaskUpdate = async (req, res) => {
   const { id } = req.params;
-  const { title, description, status, dueDate, orderIndex } = req.body;
+  const { title, description, status, dueDate, durationDays, orderIndex } = req.body;
 
-  if (!title && !description && !status && !dueDate && orderIndex === undefined) {
+  if (!title && !description && !status && !dueDate && durationDays === undefined && orderIndex === undefined) {
     return res.status(400).json({
       success: false,
       error: "No valid fields provided for update",
@@ -89,6 +90,7 @@ const roadmapTaskUpdate = async (req, res) => {
   if (title) updateData.title = title;
   if (description) updateData.description = description;
   if (dueDate) updateData.dueDate = dueDate;
+  if (durationDays !== undefined) updateData.durationDays = durationDays;
   if (orderIndex !== undefined) updateData.orderIndex = orderIndex;
 
   if (status) {
