@@ -3,7 +3,6 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Projects from './pages/Projects';
-import CreateProject from './pages/CreateProject';
 import Planning from './pages/Planning';
 import Roadmap from './pages/Roadmap';
 import Profile from './pages/Profile';
@@ -18,7 +17,6 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/projects" element={<Projects />} />
-          <Route path="/projects/create" element={<CreateProject />} />
           <Route path="/projects/:projectId/plan" element={<Planning />} />
           <Route path="/projects/:projectId/roadmap" element={<Roadmap />} />
           <Route path="/profile" element={<Profile />} />

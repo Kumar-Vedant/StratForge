@@ -121,8 +121,59 @@ def extract_solutions(task, results):
         "results": results
     })
 
-    content = response.content.strip("```json").strip("```")
+    content = response.content.strip("```json").strip("```").strip()
 
+    return json.loads(content)
+
+
+roadmap_template = """
+You are an expert planner.
+
+Your job is to break a project or goal into clear, meaningful planning tasks.
+You are given a description of the project, AND potentially a list of suggested tasks derived from online research.
+
+INSTRUCTIONS:
+- Review the project description.
+- Review the suggested tasks if any are provided. Incorporate them if they are useful.
+- Break the project into 3-6 HIGH-LEVEL, actionable tasks
+- Each task should represent a meaningful step toward completing the project
+- Avoid vague tasks like "do research" or "work on project"
+
+FOR EACH TASK:
+- Provide a concise title (max 8 words)
+- Provide a clear description (1-2 sentences)
+
+OUTPUT RULES:
+- Return ONLY valid JSON
+- Do NOT include explanations, markdown, or extra text
+
+FORMAT:
+{{
+  "tasks": [
+    {{
+      "title": "",
+      "description": ""
+    }}
+  ]
+}}
+
+PROJECT:
+{project}
+
+SUGGESTED TASKS:
+{suggested_tasks}
+"""
+
+roadmap_prompt = PromptTemplate.from_template(roadmap_template)
+roadmap_chain = roadmap_prompt | model
+
+def generate_final_tasks(project_description, suggested_tasks):
+    response = roadmap_chain.invoke({
+        "project": project_description,
+        "suggested_tasks": json.dumps(suggested_tasks) if suggested_tasks else "None"
+    })
+    
+    content = response.content.strip("```json").strip("```").strip()
     return json.loads(content)
 
 # print(generate_tasks_and_queries("Ideas for a roadmap generation AI agent"))

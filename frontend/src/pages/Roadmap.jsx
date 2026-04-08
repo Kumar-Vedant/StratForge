@@ -14,10 +14,10 @@ import {
   MessageSquare,
   BookOpen,
   Settings,
-  Upload,
   Share2,
   PanelLeftClose,
   PanelRightClose,
+  Search,
 } from 'lucide-react';
 import { api } from '../api';
 import './Roadmap.css';
@@ -34,6 +34,9 @@ const Roadmap = () => {
   const [rightOpen, setRightOpen] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState(null); // null | 'success' | 'error'
+  const [suggestedTasks, setSuggestedTasks] = useState([]);
+  const [isResearching, setIsResearching] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
@@ -50,8 +53,24 @@ const Roadmap = () => {
           setTasks(tasksRes.data.data);
         } else if (Array.isArray(tasksRes.data)) {
           setTasks(tasksRes.data);
-        } else {
           setTasks([]);
+        }
+
+        // Fetch persisted suggested tasks (PlanningTasks)
+        try {
+          const ptRes = await api.get(`/planningtask/${projectId}`);
+          const stored = ptRes.data?.data || ptRes.data;
+          if (Array.isArray(stored)) {
+            // Filter strictly for 'AI' source
+            const suggested = stored.filter(st => st.source === 'AI');
+            setSuggestedTasks(suggested.map(st => ({
+              id: st.id,
+              name: st.title,
+              description: st.description
+            })));
+          }
+        } catch (e) {
+          console.warn("Could not fetch planning tasks", e);
         }
       } catch (err) {
         console.error('Failed to fetch roadmap data', err);
@@ -178,6 +197,71 @@ const Roadmap = () => {
     }
   };
 
+  const handleResearchOnline = async () => {
+    if (!project) return;
+    setIsResearching(true);
+    try {
+      const res = await api.post('/ai/research-online', {
+        projectDescription: project.description || project.title
+      });
+      const newTasksRaw = res.data?.data?.suggestedTasks || [];
+      if (newTasksRaw.length > 0) {
+        // Persist to PlanningTask table
+        const savedPromises = newTasksRaw.map(task => 
+          api.post('/planningtask/create', {
+            projectId,
+            title: task.name || 'Suggested Task',
+            description: task.description || '',
+            source: 'AI'
+          })
+        );
+        const savedResults = await Promise.all(savedPromises);
+        
+        const newPersisted = savedResults.map(r => {
+          const t = r.data?.data || r.data;
+          return { id: t.id, name: t.title, description: t.description };
+        });
+        
+        setSuggestedTasks(prev => [...prev, ...newPersisted]);
+      }
+    } catch (err) {
+      console.error('Failed to research online and persist', err);
+    } finally {
+      setIsResearching(false);
+    }
+  };
+
+  const handleGenerateRoadmap = async () => {
+    if (!project) return;
+    setIsGenerating(true);
+    try {
+      const res = await api.post('/ai/generate-roadmap', {
+        projectDescription: project.description || project.title,
+        suggestedTasks: suggestedTasks
+      });
+      const generatedTasks = res.data?.data?.tasks || [];
+      
+      const savedTasks = await Promise.all(
+        generatedTasks.map((task, i) =>
+          api.post('/roadmaptask/create', {
+            projectId,
+            title: task.title || 'Untitled Task',
+            description: task.description || '',
+            status: 'TODO',
+            orderIndex: tasks.length + i
+          })
+        )
+      );
+      
+      const newTasks = savedTasks.map(r => r.data?.data || r.data);
+      setTasks([...tasks, ...newTasks]);
+    } catch (err) {
+      console.error('Failed to generate roadmap', err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="roadmap-workspace animate-fade-in">
 
@@ -251,7 +335,15 @@ const Roadmap = () => {
                 <div className="empty-state glass-panel">
                   <Network size={48} className="empty-icon text-secondary" />
                   <h3>No tasks yet</h3>
-                  <p>The AI hasn't created tasks for this project yet, or they haven't been saved.</p>
+                  <p>Click below to use AI to generate your project roadmap.</p>
+                  <button 
+                    className="btn-primary" 
+                    style={{ marginTop: '1.5rem' }}
+                    onClick={handleGenerateRoadmap}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? <><Sparkles size={16} /> Generating...</> : <><Sparkles size={16} /> Generate Roadmap</>}
+                  </button>
                 </div>
               )}
 
@@ -363,6 +455,14 @@ const Roadmap = () => {
             <p className="rm-tools-hint">Actions for this roadmap</p>
 
             <div className="rm-tools-group">
+              <button
+                className="rm-tool-btn"
+                onClick={handleResearchOnline}
+                disabled={isResearching || !project}
+              >
+                <Search size={16} />
+                <span>{isResearching ? 'Researching...' : 'Research Online'}</span>
+              </button>
               <button className="rm-tool-btn" disabled>
                 <MessageSquare size={16} />
                 <span>AI Chat</span>
@@ -397,6 +497,17 @@ const Roadmap = () => {
                 <span>Settings</span>
               </button>
             </div>
+
+            {suggestedTasks.length > 0 && (
+              <div className="rm-tools-hint" style={{ marginTop: '1.5rem', textAlign: 'left' }}>
+                <h4 style={{ marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Suggested Tasks</h4>
+                <ul style={{ paddingLeft: '1.25rem', fontSize: '0.85rem' }}>
+                  {suggestedTasks.map((t, i) => (
+                    <li key={i} title={t.description} style={{ marginBottom: '0.4rem' }}>{t.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </aside>

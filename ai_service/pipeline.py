@@ -1,37 +1,27 @@
-from llm import generate_tasks_and_queries, extract_solutions
+from llm import generate_tasks_and_queries, extract_solutions, generate_final_tasks
 from search import search_web
 
 
-def generate_planning(project_description):
-
+def research_online(project_description):
     result = generate_tasks_and_queries(project_description)
 
-    # Collect ALL search results across ALL tasks first
     all_search_results = []
-    for task in result["tasks"]:
-        for query in task["queries"]:
-            results = search_web(query)
-            all_search_results.extend(results)
+    for task in result.get("tasks", []):
+        for query in task.get("queries", []):
+            try:
+                results = search_web(query)
+                all_search_results.extend(results)
+            except Exception as e:
+                print(f"Search failed for {query}: {e}")
 
-    # Call extract_solutions ONCE with all aggregated results
-    combined_title = ", ".join(t["title"] for t in result["tasks"])
-    solutions = extract_solutions(combined_title, all_search_results)
+    if all_search_results:
+        combined_title = ", ".join(t.get("title", "") for t in result.get("tasks", []))
+        solutions = extract_solutions(combined_title, all_search_results)
+        return {"suggestedTasks": solutions.get("solutions", [])}
+    
+    return {"suggestedTasks": []}
 
-    simple_tasks = [
-        {"title": t["title"], "description": t["description"]}
-        for t in result["tasks"]
-    ]
 
-    detailed = [{
-        "title": combined_title,
-        "description": "Aggregated planning tasks",
-        "queries": [q for t in result["tasks"] for q in t["queries"]],
-        "solutions": solutions["solutions"]
-    }]
-
-    return {
-        "tasks": simple_tasks,
-        "detailed": detailed
-    }
-
-# print(generate_planning("roadmap generation AI agent"))
+def build_roadmap(project_description, suggested_tasks):
+    result = generate_final_tasks(project_description, suggested_tasks)
+    return {"tasks": result.get("tasks", [])}

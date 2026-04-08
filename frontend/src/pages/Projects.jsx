@@ -10,6 +10,9 @@ const Projects = () => {
   const [loading, setLoading] = useState(true);
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createFormData, setCreateFormData] = useState({ name: '', description: '' });
+  const [createLoading, setCreateLoading] = useState(false);
   
   useEffect(() => {
     const fetchProjects = async () => {
@@ -52,6 +55,27 @@ const Projects = () => {
     }
   };
 
+  const handleCreateProject = async (e) => {
+    e.preventDefault();
+    setCreateLoading(true);
+    try {
+      const userId = localStorage.getItem('userId');
+      const projRes = await api.post('/project/create', {
+        title: createFormData.name,
+        description: createFormData.description,
+        ownerId: userId
+      });
+      
+      const projectId = projRes.data.data?.id || projRes.data.project?.id;
+      if (projectId) {
+        navigate(`/projects/${projectId}/roadmap`);
+      }
+    } catch (err) {
+      console.error("Project creation failed", err);
+      setCreateLoading(false);
+    }
+  };
+
   return (
     <div className="projects-page animate-fade-in">
       <header className="page-header">
@@ -59,9 +83,9 @@ const Projects = () => {
           <h1 className="page-title">My Projects</h1>
           <p className="page-subtitle">Manage your strategic roadmaps and plans.</p>
         </div>
-        <Link to="/projects/create" className="btn-primary">
+        <button className="btn-primary" onClick={() => setIsCreating(true)}>
           <Plus size={20} /> New Project
-        </Link>
+        </button>
       </header>
       
       {loading ? (
@@ -71,9 +95,9 @@ const Projects = () => {
           <Folder size={48} className="empty-icon text-secondary" />
           <h3>No projects yet</h3>
           <p>Create your first project to start generating a roadmap</p>
-          <Link to="/projects/create" className="btn-primary" style={{ marginTop: '1.5rem' }}>
+          <button className="btn-primary" onClick={() => setIsCreating(true)} style={{ marginTop: '1.5rem' }}>
             Create Project
-          </Link>
+          </button>
         </div>
       ) : (
         <div className="projects-grid">
@@ -113,6 +137,48 @@ const Projects = () => {
                 {isDeleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {isCreating && (
+        <div className="modal-overlay" onClick={() => !createLoading && setIsCreating(false)}>
+          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ minWidth: '400px' }}>
+            <h3>Create New Project</h3>
+            <p style={{ color: 'var(--text-secondary)' }}>Outline your goals. We'll generate a roadmap next.</p>
+            <form onSubmit={handleCreateProject} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
+                <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Project Name</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  placeholder="e.g. NextGen E-Commerce" 
+                  value={createFormData.name}
+                  onChange={e => setCreateFormData({...createFormData, name: e.target.value})}
+                  required
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
+                <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Detailed Description</label>
+                <textarea 
+                  className="input-field textarea-field" 
+                  placeholder="Describe your goals, tech stack, and target audience..."
+                  value={createFormData.description}
+                  onChange={e => setCreateFormData({...createFormData, description: e.target.value})}
+                  required
+                  rows={4}
+                  style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical' }}
+                />
+              </div>
+              <div className="modal-actions" style={{ marginTop: '0.5rem' }}>
+                <button type="button" className="btn-secondary" onClick={() => setIsCreating(false)} disabled={createLoading}>Cancel</button>
+                <button type="submit" className="btn-primary" disabled={createLoading}>
+                  {createLoading ? 'Saving...' : 'Create Project'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
