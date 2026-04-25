@@ -147,6 +147,7 @@ FOR EACH TASK:
 - Provide a concise title (max 8 words)
 - Provide a clear description (1-2 sentences)
 - List the indices of tasks that must complete before this one in "depends_on" (empty list [] if none)
+- Provide an "estimated_duration_days" integer (>= 1) estimating how many days it will take.
 
 OUTPUT RULES:
 - Return ONLY valid JSON
@@ -159,13 +160,15 @@ FORMAT:
       "index": 0,
       "title": "",
       "description": "",
-      "depends_on": []
+      "depends_on": [],
+      "estimated_duration_days": 1
     }},
     {{
       "index": 1,
       "title": "",
       "description": "",
-      "depends_on": [0]
+      "depends_on": [0],
+      "estimated_duration_days": 3
     }}
   ]
 }}

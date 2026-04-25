@@ -82,6 +82,7 @@ const generateRoadmap = async (req, res) => {
             description: task.description || "",
             status: TaskStatus.TODO,
             orderIndex: currentCount + task.index,
+            durationDays: task.estimated_duration_days || 1,
           },
         });
         indexToRecord[task.index] = record;

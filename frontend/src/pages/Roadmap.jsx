@@ -79,7 +79,7 @@ const Roadmap = () => {
   const [tasks, setTasks]             = useState([]);
   const [loading, setLoading]         = useState(true);
   const [isAdding, setIsAdding]       = useState(false);
-  const [newTask, setNewTask]         = useState({ title: '', description: '' });
+  const [newTask, setNewTask]         = useState({ title: '', description: '', durationDays: 1 });
   const [leftOpen, setLeftOpen]       = useState(true);
   const [rightOpen, setRightOpen]     = useState(true);
   const [isExporting, setIsExporting] = useState(false);
@@ -226,7 +226,7 @@ const Roadmap = () => {
     try {
       const res = await api.post('/roadmaptask/create', {
         projectId, title: newTask.title, description: newTask.description, status: 'TODO',
-        orderIndex: tasks.length,
+        orderIndex: tasks.length, durationDays: newTask.durationDays || 1
       });
       const created = res.data?.data || res.data;
       setTasks(prev => [...prev, { ...created, dependencies: [], dependedOnBy: [] }]);
@@ -234,7 +234,7 @@ const Roadmap = () => {
       const maxX = Object.values(positions).reduce((m, p) => Math.max(m, p?.x || 0), 0);
       setPositions(prev => ({ ...prev, [created.id]: { x: maxX + CARD_W + COL_GAP, y: PADDING } }));
       setIsAdding(false);
-      setNewTask({ title: '', description: '' });
+      setNewTask({ title: '', description: '', durationDays: 1 });
     } catch (err) { console.error('Failed to create task', err); }
   };
 
@@ -476,6 +476,32 @@ const Roadmap = () => {
                           <p className="dag-node-title">{task.title || 'Untitled'}</p>
                           <p className="dag-node-desc">{task.description}</p>
                         </div>
+                        <div style={{ padding: '0 10px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                           <label htmlFor={`dur-${task.id}`}>Duration: </label>
+                           <input 
+                             id={`dur-${task.id}`}
+                             type="number"
+                             min={1}
+                             value={task.durationDays || 1}
+                             onMouseDown={(e) => e.stopPropagation()}
+                             onChange={(e) => {
+                               const v = parseInt(e.target.value) || 1;
+                               setTasks(prev => prev.map(t => t.id === task.id ? { ...t, durationDays: v } : t));
+                               api.put(`/roadmaptask/${task.id}/update`, { durationDays: v }).catch(console.error);
+                             }}
+                             style={{
+                               width: '35px',
+                               marginLeft: '4px',
+                               background: 'rgba(255, 255, 255, 0.1)',
+                               border: '1px solid rgba(255, 255, 255, 0.2)',
+                               color: 'white',
+                               borderRadius: '4px',
+                               padding: '2px 4px',
+                               fontSize: '0.75rem',
+                               outline: 'none'
+                             }}
+                           /> days
+                        </div>
                         {(task.dependencies || []).length > 0 && (
                           <div className="dag-node-deps">
                             {task.dependencies.length} prerequisite{task.dependencies.length > 1 ? 's' : ''}
@@ -499,7 +525,18 @@ const Roadmap = () => {
                       <input type="text" className="input-field" placeholder="Task title…" value={newTask.title}
                         onChange={e => setNewTask({ ...newTask, title: e.target.value })} autoFocus required />
                       <textarea className="input-field textarea-field" placeholder="Description…" value={newTask.description}
-                        onChange={e => setNewTask({ ...newTask, description: e.target.value })} rows={3} />
+                        onChange={e => setNewTask({ ...newTask, description: e.target.value })} rows={2} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        <label>Duration (days):</label>
+                        <input
+                          type="number"
+                          className="input-field"
+                          min="1"
+                          value={newTask.durationDays || 1}
+                          onChange={e => setNewTask({ ...newTask, durationDays: parseInt(e.target.value) || 1 })}
+                          style={{ width: '60px', padding: '4px', fontSize: '0.8rem' }}
+                        />
+                      </div>
                       <div className="rm-form-actions">
                         <button type="submit" className="btn-primary">Save Task</button>
                         <button type="button" className="btn-secondary" onClick={() => setIsAdding(false)}>Cancel</button>

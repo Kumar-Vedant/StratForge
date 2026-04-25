@@ -77,8 +77,8 @@ model TaskDependency {
   taskId          String
   dependsOnTaskId String
 
-  task          RoadmapTask @relation("TaskDependencies", fields: [taskId], references: [id])
-  dependsOnTask RoadmapTask @relation("DependentTasks", fields: [dependsOnTaskId], references: [id])
+  task          RoadmapTask @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnTask RoadmapTask @relation("DependentTasks", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
 }
 
 model Milestone {
