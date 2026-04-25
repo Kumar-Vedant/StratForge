@@ -135,13 +135,18 @@ You are given a description of the project, AND potentially a list of suggested 
 INSTRUCTIONS:
 - Review the project description.
 - Review the suggested tasks if any are provided. Incorporate them if they are useful.
-- Break the project into 3-6 HIGH-LEVEL, actionable tasks
+- Break the project into 3-10 HIGH-LEVEL, actionable tasks (use as many as genuinely needed, max 10)
 - Each task should represent a meaningful step toward completing the project
 - Avoid vague tasks like "do research" or "work on project"
+- Identify dependencies between tasks: if Task B cannot start until Task A is done, Task B depends on Task A
+- Tasks with no prerequisites should have an empty depends_on list
+- The dependency graph MUST be a valid DAG (no cycles)
 
 FOR EACH TASK:
+- Assign a unique 0-based integer "index" (consecutive, starting at 0)
 - Provide a concise title (max 8 words)
 - Provide a clear description (1-2 sentences)
+- List the indices of tasks that must complete before this one in "depends_on" (empty list [] if none)
 
 OUTPUT RULES:
 - Return ONLY valid JSON
@@ -151,8 +156,16 @@ FORMAT:
 {{
   "tasks": [
     {{
+      "index": 0,
       "title": "",
-      "description": ""
+      "description": "",
+      "depends_on": []
+    }},
+    {{
+      "index": 1,
+      "title": "",
+      "description": "",
+      "depends_on": [0]
     }}
   ]
 }}

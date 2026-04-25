@@ -97,6 +97,20 @@ const projectCreate = async (req, res) => {
   }
 
   try {
+    const existingProject = await prisma.project.findFirst({
+      where: {
+        ownerId: ownerId,
+        title: title,
+      },
+    });
+
+    if (existingProject) {
+      return res.status(409).json({
+        success: false,
+        error: "A project with this title already exists. Project names must be unique.",
+      });
+    }
+
     const projectRecord = await prisma.project.create({
       data: {
         title: title,

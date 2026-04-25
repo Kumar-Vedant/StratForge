@@ -144,9 +144,41 @@ const roadmapTaskDelete = async (req, res) => {
   }
 };
 
+const taskDependencyCreate = async (req, res) => {
+  const { taskId } = req.params;
+  const { dependsOnTaskId } = req.body;
+
+  if (!dependsOnTaskId) return res.status(400).json({ success: false, error: "Missing dependsOnTaskId" });
+  if (taskId === dependsOnTaskId) return res.status(400).json({ success: false, error: "Self-dependency not allowed" });
+
+  try {
+    const existing = await prisma.taskDependency.findFirst({ where: { taskId, dependsOnTaskId } });
+    if (existing) return res.status(409).json({ success: false, error: "Dependency already exists" });
+
+    const dep = await prisma.taskDependency.create({ data: { taskId, dependsOnTaskId } });
+    res.status(201).json({ success: true, data: dep });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const taskDependencyDelete = async (req, res) => {
+  const { depId } = req.params;
+  try {
+    await prisma.taskDependency.delete({ where: { id: depId } });
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 export default {
   roadmapTaskCreate,
   roadmapTaskByProjectGet,
   roadmapTaskUpdate,
   roadmapTaskDelete,
+  taskDependencyCreate,
+  taskDependencyDelete,
 };

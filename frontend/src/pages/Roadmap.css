@@ -240,138 +240,237 @@
   font-size: 0.72rem;
 }
 
-/* Scrollable timeline area */
-.rm-timeline-scroll {
+/* ── DAG Canvas Area ──────────────────────────── */
+.rm-dag-scroll {
   flex: 1;
-  overflow-y: auto;
+  overflow: auto;
   padding: 2rem;
   scrollbar-width: thin;
   scrollbar-color: var(--glass-border) transparent;
-}
-
-/* ── Timeline ────────────────────────────────── */
-.roadmap-timeline {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  max-width: 720px;
-  margin: 0 auto;
-  padding-bottom: 3rem;
 }
 
-.task-node {
+/* Outer wrapper that lets the canvas expand in both axes */
+.dag-outer {
+  flex: 1;
+  position: relative;
+  min-width: max-content;
+}
+
+/* Canvas: absolutely positioned nodes + SVG overlay */
+.dag-canvas-wrap {
+  position: relative;
+}
+
+/* SVG edge layer */
+.dag-svg {
+  overflow: visible;
+}
+
+.dag-edge {
+  fill: none;
+  stroke: rgba(99, 102, 241, 0.4);
+  stroke-width: 2;
+  marker-end: url(#arrow);
+}
+
+.dag-arrowhead {
+  fill: rgba(99, 102, 241, 0.5);
+}
+
+/* DAG task node card */
+.dag-node {
+  position: absolute;
+  padding: 0.875rem 1rem;
+  border-radius: var(--border-radius);
   display: flex;
-  gap: 1.25rem;
-  padding: 1.5rem;
-  width: 100%;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  cursor: default;
-}
-
-.task-node:hover {
-  transform: translateX(4px);
-  border-color: rgba(99, 102, 241, 0.35);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.task-node.completed {
-  opacity: 0.65;
-}
-
-.task-node.completed .task-title {
-  text-decoration: line-through;
-  color: var(--text-secondary);
-}
-
-.drag-handle {
+  flex-direction: column;
+  gap: 0.4rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   cursor: grab;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.dag-node:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+
+.dag-node.dragging {
+  cursor: grabbing;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  border-color: rgba(99, 102, 241, 0.6);
+  z-index: 10;
+}
+
+.dag-node.completed { opacity: 0.6; }
+.dag-node.completed .dag-node-title { text-decoration: line-through; color: var(--text-secondary); }
+
+/* ── Connection knobs ─────────────────────────── */
+.dag-knob {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--glass-border);
+  border: 2px solid rgba(99, 102, 241, 0.4);
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  z-index: 3;
+}
+
+.dag-knob-in  { left:  -7px; cursor: crosshair; }
+.dag-knob-out { right: -7px; cursor: crosshair; }
+
+.dag-knob-out:hover {
+  background: rgba(99, 102, 241, 0.7);
+  border-color: var(--accent-color);
+  transform: translateY(-50%) scale(1.4);
+}
+
+/* Highlight input knobs when a connection is being drawn */
+.dag-canvas-wrap.is-connecting .dag-knob-in {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: var(--accent-color);
+  animation: knob-pulse 1s ease-in-out infinite;
+}
+.dag-canvas-wrap.is-connecting .dag-knob-in:hover {
+  background: rgba(99, 102, 241, 0.8);
+  transform: translateY(-50%) scale(1.5);
+}
+
+@keyframes knob-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  50%       { box-shadow: 0 0 0 5px rgba(99, 102, 241, 0); }
+}
+
+/* Block text cursor while connecting */
+.dag-canvas-wrap.is-connecting { cursor: crosshair; }
+.dag-canvas-wrap.is-dragging   { cursor: grabbing; }
+
+/* ── SVG edges ─────────────────────────────────── */
+.dag-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.dag-edge {
+  fill: none;
+  stroke: rgba(99, 102, 241, 0.4);
+  stroke-width: 2;
+  transition: stroke 0.2s;
+}
+
+.dag-edge.dag-edge-hov {
+  stroke: rgba(248, 113, 113, 0.8);
+  stroke-dasharray: 5 3;
+}
+
+.dag-arrowhead { fill: rgba(99, 102, 241, 0.5); }
+
+.dag-ghost-edge {
+  fill: none;
+  stroke: rgba(99, 102, 241, 0.55);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+  animation: dash-march 0.5s linear infinite;
+}
+@keyframes dash-march { to { stroke-dashoffset: -10; } }
+
+/* Edge delete button (SVG) */
+.dag-edge-del-bg {
+  fill: rgba(248, 113, 113, 0.15);
+  stroke: rgba(248, 113, 113, 0.5);
+  stroke-width: 1.5;
+}
+.dag-edge-del-x {
+  fill: #f87171;
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* ── Node inner layout ─────────────────────────── */
+.dag-node-header {
   display: flex;
   align-items: center;
-  color: var(--text-secondary);
-  opacity: 0.5;
-  transition: opacity 0.2s;
-  padding-top: 0.1rem;
+  justify-content: space-between;
 }
-.task-node:hover .drag-handle { opacity: 1; }
+.dag-node-body  { flex: 1; }
+.dag-node-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 0.3rem;
+  color: var(--text-primary);
+}
+.dag-node-desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dag-node-deps {
+  font-size: 0.68rem;
+  color: rgba(99, 102, 241, 0.8);
+  background: rgba(99, 102, 241, 0.08);
+  padding: 0.2rem 0.5rem;
+  border-radius: 99px;
+  align-self: flex-start;
+}
 
 .task-status-btn {
   cursor: pointer;
-  margin-top: 0.1rem;
   flex-shrink: 0;
   transition: transform 0.2s;
-}
-.task-status-btn:hover { transform: scale(1.12); }
-
-.task-content { flex: 1; min-width: 0; }
-
-.task-content-header {
+  background: none;
+  border: none;
+  padding: 0;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
-}
-
-.task-title {
-  font-size: 1.05rem;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.task-desc {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
-.task-dependencies {
-  margin-top: 0.75rem;
-  font-size: 0.78rem;
-  color: #f87171;
-  background: rgba(248, 113, 113, 0.1);
-  padding: 0.3rem 0.7rem;
-  border-radius: var(--border-radius-sm);
-  display: inline-block;
-}
-
-.timeline-connector {
-  height: 48px;
-  display: flex;
-  justify-content: center;
   align-items: center;
-  opacity: 0.4;
 }
+.task-status-btn:hover { transform: scale(1.15); }
 
-/* Add-task controls */
-.rm-add-task-btn {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  width: 100%;
-  border-style: dashed;
-  font-size: 0.9rem;
-}
-
-.rm-add-task-form {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  width: 100%;
-}
-
-.rm-add-task-form form {
+/* ── Canvas hint bar ───────────────────────────── */
+.dag-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.dag-hint-knob {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.5);
+  border: 2px solid rgba(99, 102, 241, 0.7);
+  vertical-align: middle;
 }
 
-.rm-form-actions {
-  display: flex;
-  gap: 0.75rem;
-}
+/* ── Add-task bottom area ──────────────────────── */
+.rm-add-task-area { flex-shrink: 0; padding-top: 1.5rem; }
+.rm-add-task-btn  { padding: 0.75rem 1.5rem; border-style: dashed; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; }
+.rm-add-task-form { padding: 1.5rem; max-width: 480px; }
+.rm-add-task-form form { display: flex; flex-direction: column; gap: 1rem; }
+.rm-form-actions  { display: flex; gap: 0.75rem; }
+.textarea-field   { resize: vertical; min-height: 80px; }
 
-.textarea-field {
-  resize: vertical;
-  min-height: 80px;
-}
+
 
 /* ── Right panel – Tools ─────────────────────── */
 .rm-tools-body {

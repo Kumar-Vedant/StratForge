@@ -13,6 +13,7 @@ const Projects = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [createFormData, setCreateFormData] = useState({ name: '', description: '' });
   const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState(null);
   
   useEffect(() => {
     const fetchProjects = async () => {
@@ -58,6 +59,7 @@ const Projects = () => {
   const handleCreateProject = async (e) => {
     e.preventDefault();
     setCreateLoading(true);
+    setCreateError(null);
     try {
       const userId = localStorage.getItem('userId');
       const projRes = await api.post('/project/create', {
@@ -72,6 +74,13 @@ const Projects = () => {
       }
     } catch (err) {
       console.error("Project creation failed", err);
+      if (err.response && err.response.status === 409) {
+        setCreateError("A project with this title already exists. Project names must be unique.");
+      } else if (err.response && err.response.data && err.response.data.error) {
+        setCreateError(err.response.data.error);
+      } else {
+        setCreateError("Project creation failed. Please try again.");
+      }
       setCreateLoading(false);
     }
   };
@@ -147,6 +156,11 @@ const Projects = () => {
             <h3>Create New Project</h3>
             <p style={{ color: 'var(--text-secondary)' }}>Outline your goals. We'll generate a roadmap next.</p>
             <form onSubmit={handleCreateProject} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+              {createError && (
+                <div style={{ color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '0.75rem', borderRadius: '0.5rem', fontSize: '0.9rem' }}>
+                  {createError}
+                </div>
+              )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
                 <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Project Name</label>
                 <input 

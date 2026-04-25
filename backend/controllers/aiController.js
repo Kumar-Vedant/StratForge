@@ -1,3 +1,6 @@
+import prisma from "../db/prisma.js";
+import { TaskStatus } from "../generated/prisma/client/index.js";
+
 const researchOnline = async (req, res) => {
   const { projectDescription } = req.body;
 
@@ -37,16 +40,17 @@ const researchOnline = async (req, res) => {
 };
 
 const generateRoadmap = async (req, res) => {
-  const { projectDescription, suggestedTasks } = req.body;
+  const { projectId, projectDescription, suggestedTasks } = req.body;
 
-  if (!projectDescription) {
+  if (!projectDescription || !projectId) {
     return res.status(400).json({
       success: false,
-      error: "Missing projectDescription",
+      error: "Missing projectDescription or projectId",
     });
   }
 
   try {
+    // 1. Call AI service to get DAG tasks
     const aiResponse = await fetch("http://localhost:8001/generate-roadmap", {
       method: "POST",
       headers: {
@@ -59,11 +63,59 @@ const generateRoadmap = async (req, res) => {
         throw new Error(`AI service responded with status ${aiResponse.status}`);
     }
 
-    const data = await aiResponse.json();
+    const aiData = await aiResponse.json();
+    const generatedTasks = aiData.tasks || [];
 
-    res.status(200).json({
+    // 2. Persist tasks and dependency edges in a single transaction
+    const currentCount = await prisma.roadmapTask.count({ where: { projectId } });
+
+    const savedTasks = await prisma.$transaction(async (tx) => {
+      // Map from LLM index → DB record
+      const indexToRecord = {};
+
+      // Create all RoadmapTask rows first
+      for (const task of generatedTasks) {
+        const record = await tx.roadmapTask.create({
+          data: {
+            projectId,
+            title: task.title || "Untitled Task",
+            description: task.description || "",
+            status: TaskStatus.TODO,
+            orderIndex: currentCount + task.index,
+          },
+        });
+        indexToRecord[task.index] = record;
+      }
+
+      // Create TaskDependency edges
+      for (const task of generatedTasks) {
+        if (!task.depends_on || task.depends_on.length === 0) continue;
+        for (const depIdx of task.depends_on) {
+          const depRecord = indexToRecord[depIdx];
+          if (!depRecord) continue;
+          await tx.taskDependency.create({
+            data: {
+              taskId: indexToRecord[task.index].id,
+              dependsOnTaskId: depRecord.id,
+            },
+          });
+        }
+      }
+
+      // Return tasks with their dependency relations
+      return tx.roadmapTask.findMany({
+        where: { projectId },
+        orderBy: { orderIndex: "asc" },
+        include: {
+          dependencies: true,
+          dependedOnBy: true,
+        },
+      });
+    });
+
+    res.status(201).json({
       success: true,
-      data: data,
+      data: { tasks: savedTasks },
     });
   } catch (error) {
     console.error(error);
