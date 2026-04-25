@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api';
 import './Roadmap.css';
+import GanttChartModal from '../components/GanttChartModal';
 
 /* ── Layout constants ─────────────────────────────── */
 const CARD_W   = 220;
@@ -86,6 +87,7 @@ const Roadmap = () => {
   const [suggestedTasks, setSuggestedTasks] = useState([]);
   const [isResearching, setIsResearching]   = useState(false);
   const [isGenerating, setIsGenerating]     = useState(false);
+  const [showGantt, setShowGantt]           = useState(false);
 
   // ── Interactive canvas state ─────────────────────────
   const [positions, setPositions]     = useState({});     // { [taskId]: { x, y } }
@@ -528,7 +530,7 @@ const Roadmap = () => {
                 <Sparkles size={16} /><span>{isGenerating ? 'Generating...' : 'Generate Roadmap'}</span>
               </button>
               <button className="rm-tool-btn" disabled><MessageSquare size={16} /><span>AI Chat</span></button>
-              <button className="rm-tool-btn" disabled><BookOpen size={16} /><span>Gantt Chart</span></button>
+              <button className="rm-tool-btn" onClick={() => setShowGantt(true)} disabled={!tasks.length}><BookOpen size={16} /><span>Gantt Chart</span></button>
               <button className={`rm-tool-btn ${exportStatus === 'success' ? 'rm-tool-success' : exportStatus === 'error' ? 'rm-tool-error' : ''}`}
                 onClick={handleExportToCalendar} disabled={isExporting || !tasks.length}>
                 <Upload size={16} />
@@ -548,6 +550,10 @@ const Roadmap = () => {
           </div>
         )}
       </aside>
+
+      {showGantt && (
+        <GanttChartModal projectId={projectId} onClose={() => setShowGantt(false)} />
+      )}
     </div>
   );
 };

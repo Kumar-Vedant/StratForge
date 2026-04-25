@@ -174,6 +174,62 @@ const taskDependencyDelete = async (req, res) => {
   }
 };
 
+const ganttDataGet = async (req, res) => {
+  const { projectId } = req.params;
+  try {
+    const tasks = await prisma.roadmapTask.findMany({
+      where: { projectId },
+      include: { dependencies: true },
+    });
+
+    const inDegree = {};
+    const adj = {};
+    const tasksMap = {};
+    
+    tasks.forEach(t => {
+      inDegree[t.id] = 0;
+      adj[t.id] = [];
+      tasksMap[t.id] = { ...t, startDay: 0, endDay: t.durationDays || 1 };
+    });
+
+    tasks.forEach(t => {
+      (t.dependencies || []).forEach(dep => {
+        inDegree[t.id] = (inDegree[t.id] || 0) + 1;
+        adj[dep.dependsOnTaskId] = adj[dep.dependsOnTaskId] || [];
+        adj[dep.dependsOnTaskId].push(t.id);
+      });
+    });
+
+    const queue = [];
+    tasks.forEach(t => {
+      if (inDegree[t.id] === 0) queue.push(t.id);
+    });
+
+    while (queue.length > 0) {
+      const u = queue.shift();
+      const uTask = tasksMap[u];
+      
+      (adj[u] || []).forEach(v => {
+        const vTask = tasksMap[v];
+        if (vTask.startDay < uTask.endDay) {
+          vTask.startDay = uTask.endDay;
+          vTask.endDay = vTask.startDay + (vTask.durationDays || 1);
+        }
+        
+        inDegree[v]--;
+        if (inDegree[v] === 0) queue.push(v);
+      });
+    }
+
+    const result = Object.values(tasksMap).sort((a, b) => a.startDay - b.startDay || a.orderIndex - b.orderIndex);
+
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 export default {
   roadmapTaskCreate,
   roadmapTaskByProjectGet,
@@ -181,4 +237,5 @@ export default {
   roadmapTaskDelete,
   taskDependencyCreate,
   taskDependencyDelete,
+  ganttDataGet,
 };
