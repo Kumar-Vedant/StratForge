@@ -4,7 +4,6 @@ import process from "node:process";
 import { google } from "googleapis";
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
-const CREDENTIALS_PATH = path.join(process.cwd(), "backend/credentials.json");
 const TOKEN_PATH = path.join(process.cwd(), "backend/token.json");
 
 // OAuth2 client — created once, reused for every request.
@@ -13,13 +12,10 @@ let oauth2Client = null;
 const getOAuthClient = async () => {
   if (oauth2Client) return oauth2Client;
 
-  const raw = await fs.readFile(CREDENTIALS_PATH, "utf-8");
-  const { web } = JSON.parse(raw);
-
   oauth2Client = new google.auth.OAuth2(
-    web.client_id,
-    web.client_secret,
-    web.redirect_uris[0]
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI
   );
 
   oauth2Client.on("tokens", async (tokens) => {
