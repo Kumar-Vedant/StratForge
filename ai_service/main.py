@@ -1,8 +1,22 @@
 from fastapi import FastAPI
 from schemas import GenerateRoadmapRequest, ResearchOnlineRequest
 from pipeline import research_online, build_roadmap
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# allow requests from Node.js backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def root():
+    return {"message": "AI service is running!"}
 
 @app.post("/research-online")
 def research(req: ResearchOnlineRequest):
