@@ -4,7 +4,7 @@ import process from "node:process";
 import { google } from "googleapis";
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
-const TOKEN_PATH = path.join(process.cwd(), "backend/token.json");
+const TOKEN_PATH = path.join(process.cwd(), "token.json");
 
 // OAuth2 client — created once, reused for every request.
 let oauth2Client = null;
