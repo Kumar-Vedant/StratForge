@@ -71,7 +71,7 @@ const getAuthUrl = async (req, res) => {
     const client = await getOAuthClient();
 
     // `returnTo` is the frontend URL to land on after auth (e.g. the Roadmap page)
-    const returnTo = req.query.returnTo || "http://localhost:5173/";
+    const returnTo = req.query.returnTo || process.env.FRONTEND_URL || "http://localhost:5173/";
     const state = Buffer.from(JSON.stringify({ returnTo })).toString("base64url");
 
     const url = client.generateAuthUrl({
@@ -108,7 +108,7 @@ const oauthCallback = async (req, res) => {
     await saveTokens(tokens);
 
     // Decode state to find where to send the user next (frontend URL)
-    let returnTo = "http://localhost:5173/";
+    let returnTo = process.env.FRONTEND_URL || "http://localhost:5173/";
     if (state) {
       try {
         returnTo = JSON.parse(Buffer.from(state, "base64url").toString()).returnTo || returnTo;

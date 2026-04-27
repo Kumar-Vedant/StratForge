@@ -12,7 +12,8 @@ const researchOnline = async (req, res) => {
   }
 
   try {
-    const aiResponse = await fetch("http://localhost:8001/research-online", {
+    const aiUrl = process.env.AI_SERVICE_URL || "http://localhost:8001";
+    const aiResponse = await fetch(`${aiUrl}/research-online`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -51,7 +52,8 @@ const generateRoadmap = async (req, res) => {
 
   try {
     // 1. Call AI service to get DAG tasks
-    const aiResponse = await fetch("http://localhost:8001/generate-roadmap", {
+    const aiUrl = process.env.AI_SERVICE_URL || "http://localhost:8001";
+    const aiResponse = await fetch(`${aiUrl}/generate-roadmap`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

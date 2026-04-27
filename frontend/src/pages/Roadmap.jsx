@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import {
   Network, CheckCircle2, Circle, ArrowLeft, Trash2, Upload,
   FileText, Sparkles, MessageSquare, BookOpen, Settings,
-  Share2, PanelLeftClose, PanelRightClose, Search, Plus,
+  Share2, PanelLeftClose, PanelRightClose, Search, Plus, X, Maximize2
 } from 'lucide-react';
 import { api } from '../api';
 import './Roadmap.css';
@@ -80,7 +80,8 @@ const Roadmap = () => {
   const [loading, setLoading]         = useState(true);
   const [isAdding, setIsAdding]       = useState(false);
   const [newTask, setNewTask]         = useState({ title: '', description: '', durationDays: 1 });
-  const [leftOpen, setLeftOpen]       = useState(true);
+  const [openedTask, setOpenedTask]   = useState(null);
+  const [showSuggestionsModal, setShowSuggestionsModal] = useState(false);
   const [rightOpen, setRightOpen]     = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState(null);
@@ -279,7 +280,8 @@ const Roadmap = () => {
     try {
       const statusRes = await api.get('/calendar/status');
       if (!statusRes.data.isAuthed) {
-        window.location.href = `http://localhost:3000/calendar/auth?returnTo=${encodeURIComponent(window.location.href)}`;
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+        window.location.href = `${backendUrl}/calendar/auth?returnTo=${encodeURIComponent(window.location.href)}`;
         return;
       }
       const res = await api.post('/calendar/export', { tasks: tasks.map(t => ({ title: t.title, description: t.description, dueDate: t.dueDate, durationDays: t.durationDays ?? 1 })) });
@@ -371,23 +373,7 @@ const Roadmap = () => {
   return (
     <div className="roadmap-workspace animate-fade-in">
 
-      {/* LEFT PANEL */}
-      <aside className={`rm-panel rm-panel-left glass-panel ${leftOpen ? 'open' : 'collapsed'}`}>
-        <div className="rm-panel-header">
-          <div className="rm-panel-title"><FileText size={16} /><span>Sources</span></div>
-          <button className="rm-panel-toggle" onClick={() => setLeftOpen(!leftOpen)}><PanelLeftClose size={16} /></button>
-        </div>
-        {leftOpen && (
-          <div className="rm-panel-body">
-            <div className="rm-sources-empty">
-              <div className="rm-sources-icon-wrap"><Upload size={28} /></div>
-              <p className="rm-sources-label">No sources yet</p>
-              <p className="rm-sources-sub">Upload documents, PDFs, or links to enrich your roadmap context.</p>
-              <button className="btn-secondary rm-upload-btn" disabled><Upload size={14} />Add source</button>
-            </div>
-          </div>
-        )}
-      </aside>
+      {/* LEFT PANEL REMOVED */}
 
       {/* CENTRE */}
       <main className="rm-centre">
@@ -448,6 +434,10 @@ const Roadmap = () => {
                         className={`dag-node glass-panel${done ? ' completed' : ''}${dragState?.id === task.id ? ' dragging' : ''}`}
                         style={{ left: pos.x, top: pos.y, width: CARD_W, height: CARD_H }}
                         onMouseDown={(e) => handleCardMouseDown(e, task.id)}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          setOpenedTask(task);
+                        }}
                       >
                         {/* Input knob (left) */}
                         <div
@@ -468,9 +458,14 @@ const Roadmap = () => {
                           <button className="task-status-btn" onClick={() => toggleTaskCompletion(task.id, task.status)}>
                             {done ? <CheckCircle2 color="#6366f1" size={18} /> : <Circle className="text-secondary" size={18} />}
                           </button>
-                          <button className="icon-btn delete-btn" onClick={() => handleDelete(task.id)} title="Delete task">
-                            <Trash2 size={13} />
-                          </button>
+                          <div style={{ display: 'flex', gap: '0.2rem' }}>
+                            <button className="icon-btn" onClick={() => setOpenedTask(task)} title="Open details">
+                              <Maximize2 size={13} />
+                            </button>
+                            <button className="icon-btn delete-btn" onClick={() => handleDelete(task.id)} title="Delete task">
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
                         </div>
                         <div className="dag-node-body">
                           <p className="dag-node-title">{task.title || 'Untitled'}</p>
@@ -560,8 +555,17 @@ const Roadmap = () => {
           <div className="rm-panel-body rm-tools-body">
             <p className="rm-tools-hint">Actions for this roadmap</p>
             <div className="rm-tools-group">
-              <button className="rm-tool-btn" onClick={handleResearchOnline} disabled={isResearching || !project}>
-                <Search size={16} /><span>{isResearching ? 'Researching...' : 'Research Online'}</span>
+              <button className="rm-tool-btn" onClick={() => {
+                if (suggestedTasks.length > 0) {
+                  setShowSuggestionsModal(true);
+                } else {
+                  handleResearchOnline();
+                }
+              }} disabled={isResearching || !project}>
+                <Search size={16} />
+                <span>
+                  {isResearching ? 'Researching...' : suggestedTasks.length > 0 ? `View Suggested Tasks (${suggestedTasks.length})` : 'Research Online'}
+                </span>
               </button>
               <button className="rm-tool-btn" onClick={handleGenerateRoadmap} disabled={isGenerating || !project}>
                 <Sparkles size={16} /><span>{isGenerating ? 'Generating...' : 'Generate Roadmap'}</span>
@@ -576,17 +580,100 @@ const Roadmap = () => {
               <button className="rm-tool-btn" disabled><Share2 size={16} /><span>Share</span></button>
               <button className="rm-tool-btn" disabled><Settings size={16} /><span>Settings</span></button>
             </div>
-            {suggestedTasks.length > 0 && (
-              <div className="rm-tools-hint" style={{ marginTop: '1.5rem', textAlign: 'left' }}>
-                <h4 style={{ marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Suggested Tasks</h4>
-                <ul style={{ paddingLeft: '1.25rem', fontSize: '0.85rem' }}>
-                  {suggestedTasks.map((t, i) => <li key={i} title={t.description} style={{ marginBottom: '0.4rem' }}>{t.name}</li>)}
-                </ul>
-              </div>
-            )}
           </div>
         )}
       </aside>
+
+      {showSuggestionsModal && (
+        <div className="modal-overlay" onClick={() => setShowSuggestionsModal(false)}>
+          <div className="modal-content glass-panel" style={{ maxWidth: '500px', width: '90%' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: 600 }}>Suggested Tasks</h3>
+              <button className="icon-btn" onClick={() => setShowSuggestionsModal(false)}><X size={20} /></button>
+            </div>
+            <div style={{ maxHeight: '60vh', overflowY: 'auto', textAlign: 'left', marginBottom: '1.5rem' }}>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem', lineHeight: 1.5 }}>
+                These tasks were suggested by AI research. They will be considered when you generate the roadmap.
+              </p>
+              <ul style={{ paddingLeft: '1.5rem', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', margin: 0 }}>
+                {suggestedTasks.map((t, i) => (
+                  <li key={i} style={{ paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+                    <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.25rem' }}>{t.name}</strong>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{t.description}</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <button className="btn-secondary" onClick={() => {
+                setShowSuggestionsModal(false);
+                handleResearchOnline();
+              }}>Research Again</button>
+              <button className="btn-primary" onClick={() => setShowSuggestionsModal(false)}>Done</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {openedTask && (
+        <div className="modal-overlay" onMouseDown={() => setOpenedTask(null)}>
+          <div className="modal-content glass-panel" style={{ maxWidth: '600px', width: '90%' }} onMouseDown={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: 600 }}>Task Details</h3>
+              <button className="icon-btn" onClick={() => setOpenedTask(null)}><X size={20} /></button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left', marginBottom: '1.5rem' }}>
+              <div>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', display: 'block' }}>Title</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={openedTask.title || ''} 
+                  onChange={e => setOpenedTask({...openedTask, title: e.target.value})} 
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', display: 'block' }}>Description</label>
+                <textarea 
+                  className="input-field textarea-field" 
+                  rows={5} 
+                  value={openedTask.description || ''} 
+                  onChange={e => setOpenedTask({...openedTask, description: e.target.value})} 
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Duration (days):</label>
+                <input 
+                  type="number" 
+                  className="input-field" 
+                  style={{ width: '80px', padding: '4px', fontSize: '0.9rem' }}
+                  min={1} 
+                  value={openedTask.durationDays || 1} 
+                  onChange={e => setOpenedTask({...openedTask, durationDays: parseInt(e.target.value) || 1})} 
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <button className="btn-secondary" onClick={() => setOpenedTask(null)}>Cancel</button>
+              <button className="btn-primary" onClick={async () => {
+                setTasks(prev => prev.map(t => t.id === openedTask.id ? openedTask : t));
+                setOpenedTask(null);
+                try {
+                  await api.put(`/roadmaptask/${openedTask.id}/update`, { 
+                    title: openedTask.title, 
+                    description: openedTask.description, 
+                    durationDays: openedTask.durationDays 
+                  });
+                } catch (err) {
+                  console.error(err);
+                }
+              }}>Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showGantt && (
         <GanttChartModal projectId={projectId} onClose={() => setShowGantt(false)} />
