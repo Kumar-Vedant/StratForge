@@ -17,7 +17,7 @@
 
 .gantt-header {
   padding: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--glass-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -51,15 +51,15 @@
   display: flex;
   flex-direction: column;
   min-width: max-content;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
   border-radius: 8px;
   overflow: visible;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--bg-tertiary);
 }
 
 .gantt-row {
   display: flex;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--glass-border);
   position: relative;
 }
 
@@ -68,7 +68,7 @@
 }
 
 .gantt-labels-header {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: var(--btn-sec-bg);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -80,21 +80,21 @@
 }
 
 .gantt-task-name-col {
-  width: 250px;
-  min-width: 250px;
+  width: 300px;
+  min-width: 300px;
   padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  background-color: rgba(15, 15, 18, 1);
+  border-right: 1px solid var(--glass-border);
+  background-color: var(--bg-secondary);
   position: sticky;
   left: 0;
   z-index: 5;
   font-size: 0.9rem;
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .gantt-labels-header .gantt-task-name-col {
@@ -116,7 +116,7 @@
   margin-left: auto;
   font-size: 0.75rem;
   color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--btn-sec-bg);
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
 }
@@ -130,7 +130,7 @@
   min-width: 50px;
   padding: 0.75rem 0;
   text-align: center;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid var(--glass-border);
 }
 
 .gantt-timeline-col {
@@ -141,7 +141,7 @@
   width: 50px;
   min-width: 50px;
   height: 100%;
-  border-right: 1px dashed rgba(255, 255, 255, 0.05);
+  border-right: 1px dashed var(--glass-border);
   position: relative;
   display: flex;
   align-items: center;

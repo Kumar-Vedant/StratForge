@@ -570,15 +570,12 @@ const Roadmap = () => {
               <button className="rm-tool-btn" onClick={handleGenerateRoadmap} disabled={isGenerating || !project}>
                 <Sparkles size={16} /><span>{isGenerating ? 'Generating...' : 'Generate Roadmap'}</span>
               </button>
-              <button className="rm-tool-btn" disabled><MessageSquare size={16} /><span>AI Chat</span></button>
               <button className="rm-tool-btn" onClick={() => setShowGantt(true)} disabled={!tasks.length}><BookOpen size={16} /><span>Gantt Chart</span></button>
               <button className={`rm-tool-btn ${exportStatus === 'success' ? 'rm-tool-success' : exportStatus === 'error' ? 'rm-tool-error' : ''}`}
                 onClick={handleExportToCalendar} disabled={isExporting || !tasks.length}>
                 <Upload size={16} />
                 <span>{isExporting ? 'Exporting…' : exportStatus === 'success' ? '✓ Exported!' : exportStatus === 'error' ? '✗ Failed — retry' : 'Export to Google Calendar'}</span>
               </button>
-              <button className="rm-tool-btn" disabled><Share2 size={16} /><span>Share</span></button>
-              <button className="rm-tool-btn" disabled><Settings size={16} /><span>Settings</span></button>
             </div>
           </div>
         )}
