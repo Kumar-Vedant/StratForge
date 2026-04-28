@@ -276,20 +276,30 @@ const Roadmap = () => {
   /* ── Calendar export ─────────────────────────────── */
   const handleExportToCalendar = async () => {
     if (!tasks.length) return;
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      console.error("User not logged in");
+      return;
+    }
+
     setIsExporting(true); setExportStatus(null);
     try {
-      const statusRes = await api.get('/calendar/status');
+      const statusRes = await api.get(`/calendar/status?userId=${userId}`);
       if (!statusRes.data.isAuthed) {
         const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-        window.location.href = `${backendUrl}/calendar/auth?returnTo=${encodeURIComponent(window.location.href)}`;
+        window.location.href = `${backendUrl}/calendar/auth?userId=${userId}&returnTo=${encodeURIComponent(window.location.href)}`;
         return;
       }
-      const res = await api.post('/calendar/export', { tasks: tasks.map(t => ({ title: t.title, description: t.description, dueDate: t.dueDate, durationDays: t.durationDays ?? 1 })) });
+      const res = await api.post('/calendar/export', { 
+        userId,
+        tasks: tasks.map(t => ({ title: t.title, description: t.description, dueDate: t.dueDate, durationDays: t.durationDays ?? 1 })) 
+      });
       setExportStatus(res.data.success ? 'success' : 'error');
       if (res.data.links?.[0]) window.open(res.data.links[0], '_blank');
     } catch { setExportStatus('error'); }
     finally { setIsExporting(false); setTimeout(() => setExportStatus(null), 4000); }
   };
+
 
   const handleResearchOnline = async () => {
     if (!project) return;
